@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Parametrik Anahtarlık Fabrikası</title>
+    <!-- Three.js ve STL Exporter -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+    <!-- Opentype.js: Türkçe karakter ve font vektörleştirme için -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 480px; box-sizing: border-box; }
+        h2 { color: #333; margin-top: 0; text-align: center; font-size: 20px; }
+        .form-group { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        label { font-weight: 600; color: #555; font-size: 14px; }
+        input[type="text"], input[type="number"], select { width: 180px; padding: 6px 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: right; }
+        select { text-align-last: right; }
+        .full-width { width: 100%; display: block; margin-bottom: 8px; }
+        #canvas-container { width: 100%; height: 240px; background: #e9ecef; border-radius: 8px; margin: 15px 0; position: relative; overflow: hidden; }
+        button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0056b3; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
+        .status { font-size: 11px; color: #666; text-align: center; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>3D Anahtarlık Fabrikası</h2>
+    
+    <div class="form-group full-width" style="flex-direction: column; align-items: flex-start;">
+        <label for="textInput">Anahtarlık Metni (Türkçe Destekli):</label>
+        <input type="text" id="textInput" value="TUSAŞ" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
+    </div>
+
+    <div class="form-group">
+        <label for="fontSelect">Yazı Tipi (30+ Seçenek):</label>
+        <select id="fontSelect" onchange="loadSelectedFont()">
+            <!-- 30+ Popüler ve Kararlı Font Seçeneği -->
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf">Roboto Bold</option>
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf">Roboto Regular</option>
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Bold.otf">Source Sans Pro Bold</option>
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Regular.otf">Source Sans Pro Regular</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/montserrat@5.0.8/files/montserrat-latin-700-normal.woff">Montserrat Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/lato@5.0.8/files/lato-latin-700-normal.woff">Lato Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.0.8/files/poppins-latin-700-normal.woff">Poppins Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/oswald@5.0.8/files/oswald-latin-700-normal.woff">Oswald Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/raleway@5.0.8/files/raleway-latin-700-normal.woff">Raleway Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/ubuntu@5.0.8/files/ubuntu-latin-700-normal.woff">Ubuntu Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5.0.8/files/nunito-latin-700-normal.woff">Nunito Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/rubik@5.0.8/files/rubik-latin-700-normal.woff">Rubik Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@5.0.8/files/pt-sans-latin-700-normal.woff">PT Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/fira-sans@5.0.8/files/fira-sans-latin-700-normal.woff">Fira Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/work-sans@5.0.8/files/work-sans-latin-700-normal.woff">Work Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/quicksand@5.0.8/files/quicksand-latin-700-normal.woff">Quicksand Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5.0.8/files/barlow-latin-700-normal.woff">Barlow Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/heebo@5.0.8/files/heebo-latin-700-normal.woff">Heebo Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/anton@5.0.8/files/anton-latin-400-normal.woff">Anton</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/caveat@5.0.8/files/caveat-latin-700-normal.woff">Caveat Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/pacifico@5.0.8/files/pacifico-latin-400-normal.woff">Pacifico</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/courgette@5.0.8/files/courgette-latin-400-normal.woff">Courgette</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/lobster@5.0.8/files/lobster-latin-400-normal.woff">Lobster</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/dancing-script@5.0.8/files/dancing-script-latin-700-normal.woff">Dancing Script</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/amatic-sc@5.0.8/files/amatic-sc-latin-700-normal.woff">Amatic SC Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/comfortaa@5.0.8/files/comfortaa-latin-700-normal.woff">Comfortaa Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/josefin-sans@5.0.8/files/josefin-sans-latin-700-normal.woff">Josefin Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.0.8/files/titillium-web-latin-700-normal.woff">Titillium Web Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/dosis@5.0.8/files/dosis-latin-700-normal.woff">Dosis Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/kanit@5.0.8/files/kanit-latin-700-normal.woff">Kanit Bold</option>
+        </select>
+    </div>
+    <div id="status" class="status">Font yükleniyor...</div>
+
+    <hr>
+
+    <div class="form-group">
+        <label for="widthInput">Genişlik (X - mm):</label>
+        <input type="number" id="widthInput" value="100" min="40" max="200" oninput="updateKeychain()">
+    </div>
+    <div class="form-group">
+        <label for="heightInput">Yükseklik (Y - mm):</label>
+        <input type="number" id="heightInput" value="30" min="20" max="80" oninput="updateKeychain()">
+    </div>
+    <div class="form-group">
+        <label for="thicknessInput">Kalınlık (Z - mm):</label>
+        <input type="number" id="thicknessInput" value="3.5" min="1" max="10" step="0.5" oninput="updateKeychain()">
+    </div>
+    <div class="form-group">
+        <label for="holeInput">Delik Çapı (mm):</label>
+        <input type="number" id="holeInput" value="4.5" min="2" max="10" step="0.5" oninput="updateKeychain()">
+    </div>
+    <div class="form-group">
+        <label for="radiusInput">Kenar Yuvarlama (Radius):</label>
+        <input type="number" id="radiusInput" value="4" min="0" max="15" step="0.5" oninput="updateKeychain()">
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <button onclick="downloadSTL()">STL İndir</button>
+</div>
+
+<script>
+    let scene, camera, renderer, keychainGroup, currentFont = null;
+
+    function init3D() {
+        const container = document.getElementById('canvas-container');
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xe9ecef);
+
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, -110, 70);
+        camera.up.set(0, 0, 1);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, -20, 40);
+        scene.add(dirLight);
+
+        loadSelectedFont();
+        animate();
+    }
+
+    function loadSelectedFont() {
+        const fontUrl = document.getElementById('fontSelect').value;
+        document.getElementById('status').innerText = "Font yükleniyor...";
+        
+        opentype.load(fontUrl, function(err, font) {
+            if (err) {
+                document.getElementById('status').innerText = "Font yüklenemedi, yedek font kullanılıyor.";
+                currentFont = null;
+            } else {
+                currentFont = font;
+                document.getElementById('status').innerText = "Model hazır!";
+            }
+            updateKeychain();
+        });
+        
+        // Font yüklenene kadar boş kalmasın diye anında çizdir
+        updateKeychain();
+    }
+
+    function createRoundedRectShape(width, height, radius) {
+        const shape = new THREE.Shape();
+        const x = -width / 2;
+        const y = -height / 2;
+        radius = Math.min(radius, width / 2, height / 2);
+
+        shape.moveTo(x, y + radius);
+        shape.lineTo(x, y + height - radius);
+        shape.quadraticCurveTo(x, y + height, x + radius, y + height);
+        shape.lineTo(x + width - radius, y + height);
+        shape.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
+        shape.lineTo(x + width, y + radius);
+        shape.quadraticCurveTo(x + width, y, x + width - radius, y);
+        shape.lineTo(x + radius, y);
+        shape.quadraticCurveTo(x, y, x, y + radius);
+        
+        return shape;
+    }
+
+    function updateKeychain() {
+        if (!scene) return;
+        if (keychainGroup) scene.remove(keychainGroup);
+
+        keychainGroup = new THREE.Group();
+        const material = new THREE.MeshStandardMaterial({ color: 0x00a8cc, roughness: 0.3 });
+        const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
+
+        const width = parseFloat(document.getElementById('widthInput').value) || 100;
+        const height = parseFloat(document.getElementById('heightInput').value) || 30;
+        const thickness = parseFloat(document.getElementById('thicknessInput').value) || 3.5;
+        const holeDia = parseFloat(document.getElementById('holeInput').value) || 4.5;
+        const radius = parseFloat(document.getElementById('radiusInput').value) || 4;
+        const textVal = document.getElementById('textInput').value || "TEXT";
+
+        // 1. Plaka ve Fiziksel Delik (Asla kaybolmaz)
+        const rectShape = createRoundedRectShape(width, height, radius);
+        
+        const holeX = width / 2 - radius - (holeDia / 2) - 3;
+        const holeY = 0;
+        const holePath = new THREE.Path();
+        holePath.absarc(holeX, holeY, holeDia / 2, 0, Math.PI * 2, true);
+        rectShape.holes.push(holePath);
+
+        const extrudeSettings = { depth: thickness, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.15, bevelThickness: 0.15 };
+        const plateGeo = new THREE.ExtrudeGeometry(rectShape, extrudeSettings);
+        plateGeo.center();
+        const plateMesh = new THREE.Mesh(plateGeo, material);
+        plateMesh.position.set(0, 0, thickness / 2);
+        keychainGroup.add(plateMesh);
+
+        // 2. Metin İşleme (Opentype.js ile Türkçe Karakter Vektörleştirme)
+        let fontSize = height * 0.38;
+        const maxTextWidth = width - holeDia - 22;
+
+        if (currentFont) {
+            try {
+                let pathData = currentFont.getPath(textVal, 0, 0, fontSize);
+                let svgPath = pathData.toPathData(2);
+                let shapes = transformSvgPathToShapes(svgPath);
+                
+                if (shapes.length > 0) {
+                    let tempGeo = new THREE.ExtrudeGeometry(shapes, { depth: 1.2, bevelEnabled: false });
+                    tempGeo.computeBoundingBox();
+                    let textWidth = tempGeo.boundingBox.max.x - tempGeo.boundingBox.min.x;
+
+                    if (textWidth > maxTextWidth && textWidth > 0) {
+                        const scale = maxTextWidth / textWidth;
+                        fontSize *= scale;
+                        pathData = currentFont.getPath(textVal, 0, 0, fontSize);
+                        svgPath = pathData.toPathData(2);
+                        shapes = transformSvgPathToShapes(svgPath);
+                        tempGeo.dispose();
+                        tempGeo = new THREE.ExtrudeGeometry(shapes, { depth: 1.2, bevelEnabled: false });
+                        tempGeo.computeBoundingBox();
+                    }
+
+                    const textMesh = new THREE.Mesh(tempGeo, textMaterial);
+                    textMesh.position.set(-width / 2 + 8, -fontSize / 2.8, thickness);
+                    keychainGroup.add(textMesh);
+                }
+            } catch (e) {
+                console.warn("Metin oluşturulamadı.");
+            }
+        }
+
+        scene.add(keychainGroup);
+    }
+
+    function transformSvgPathToShapes(svgPathStr) {
+        const svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svgPath.setAttribute('d', svgPathStr);
+        return svgPath.toShapes(true);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (keychainGroup) {
+            keychainGroup.rotation.z += 0.005;
+        }
+        renderer.render(scene, camera);
+    }
+
+    function downloadSTL() {
+        if (!keychainGroup) {
+            alert("Model henüz yüklenmedi!");
+            return;
+        }
+
+        const exporter = new THREE.STLExporter();
+        const result = exporter.parse(keychainGroup, { binary: true });
+
+        const blob = new Blob([result], { type: 'application/octet-stream' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        
+        const textVal = document.getElementById('textInput').value || "anahtarlik";
+        link.download = `${textVal.replace(/[^a-zA-z0-9ÇŞĞİÖÜçşğiöü]/g, '_')}_anahtarlik.stl`;
+        link.click();
+    }
+
+    window.onload = init3D;
+</script>
+
+</body>
+</html>
