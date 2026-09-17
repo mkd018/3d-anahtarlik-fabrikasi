@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Parametrik Anahtarlık Fabrikası</title>
-    <!-- Three.js ve OrbitControls -->
+    <!-- Three.js, OrbitControls ve TextGeometry -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
-    <!-- Opentype.js (TTF/OTF Destekli) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 480px; box-sizing: border-box; }
@@ -24,7 +24,7 @@
         button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background: #0056b3; }
         hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
-        .status { font-size: 11px; color: #007bff; text-align: center; font-weight: bold; margin-bottom: 10px; }
+        .status { font-size: 11px; color: #28a745; text-align: center; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -33,44 +33,17 @@
     <h2>3D Anahtarlık Fabrikası</h2>
     
     <div class="form-group full-width" style="flex-direction: column; align-items: flex-start;">
-        <label for="textInput">Anahtarlık Metni (Türkçe Destekli):</label>
+        <label for="textInput">Anahtarlık Metni:</label>
         <input type="text" id="textInput" value="mustafa kerem doğan" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
     </div>
 
     <div class="form-group">
-        <label for="fontSelect">Yazı Tipi (Türkçe Uyumlu):</label>
-        <select id="fontSelect" onchange="loadSelectedFont()">
-            <!-- Kesin Çalışan TTF/OTF Font Havuzu -->
-            <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf">Roboto Bold</option>
-            <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf">Roboto Regular</option>
-            <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Bold.otf">Source Sans Pro Bold</option>
-            <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Regular.otf">Source Sans Pro Regular</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/lato/Lato-Bold.ttf">Lato Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Bold.ttf">Poppins Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/oswald/Oswald-Bold.ttf">Oswald Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/raleway/Raleway-Bold.ttf">Raleway Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/ubuntu/Ubuntu-Bold.ttf">Ubuntu Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/nunito/Nunito-Bold.ttf">Nunito Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/rubik/Rubik-Bold.ttf">Rubik Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Bold.ttf">PT Sans Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/firasans/FiraSans-Bold.ttf">Fira Sans Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/worksans/WorkSans-Bold.ttf">Work Sans Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/quicksand/Quicksand-Bold.ttf">Quicksand Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/barlow/Barlow-Bold.ttf">Barlow Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/heebo/Heebo-Bold.ttf">Heebo Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/apache/anton/Anton-Regular.ttf">Anton</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/caveat/Caveat-Bold.ttf">Caveat Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/pacifico/Pacifico-Regular.ttf">Pacifico</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/courgette/Courgette-Regular.ttf">Courgette</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/lobster/Lobster-Regular.ttf">Lobster</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/amaticsc/AmaticSC-Bold.ttf">Amatic SC Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/comfortaa/Comfortaa-Bold.ttf">Comfortaa Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/josefinsans/JosefinSans-Bold.ttf">Josefin Sans Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/dosis/Dosis-Bold.ttf">Dosis Bold</option>
-            <option value="https://github.com/google/fonts/raw/main/ofl/kanit/Kanit-Bold.ttf">Kanit Bold</option>
+        <label for="fontSelect">Yazı Tipi:</label>
+        <select id="fontSelect">
+            <option value="helvetiker">Standard Kararlı Font</option>
         </select>
     </div>
-    <div id="status" class="status">Font yükleniyor...</div>
+    <div id="status" class="status">Sistem aktif ve hazır!</div>
 
     <hr>
 
@@ -101,7 +74,7 @@
 </div>
 
 <script>
-    let scene, camera, renderer, controls, keychainGroup, currentFont = null;
+    let scene, camera, renderer, controls, keychainGroup, loadedFont = null;
 
     function init3D() {
         const container = document.getElementById('canvas-container');
@@ -126,23 +99,14 @@
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
 
-        loadSelectedFont();
-        animate();
-    }
-
-    function loadSelectedFont() {
-        const fontUrl = document.getElementById('fontSelect').value;
-        document.getElementById('status').innerText = "Font yükleniyor...";
-        
-        opentype.load(fontUrl, function(err, font) {
-            if (err) {
-                document.getElementById('status').innerText = "Font yüklenemedi.";
-                currentFont = null;
-            } else {
-                currentFont = font;
-                document.getElementById('status').innerText = "Font yüklendi ve uygulandı!";
-            }
+        // Three.js resmi ve kararlı font yükleyicisi
+        const loader = new THREE.FontLoader();
+        loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+            loadedFont = font;
             updateKeychain();
+            animate();
+        }, undefined, function() {
+            document.getElementById('status').innerText = "Font yüklenemedi!";
         });
     }
 
@@ -196,50 +160,41 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // 2. Metin Kabartması
-        if (currentFont && textVal.trim() !== "") {
-            try {
-                const targetTextSize = 10;
-                const fontPath = currentFont.getPath(textVal, 0, 0, targetTextSize);
-                const boundingBox = fontPath.getBoundingBox();
-                const textWidth = boundingBox.x2 - boundingBox.x1;
-                const textHeight = boundingBox.y2 - boundingBox.y1;
+        // 2. Metin Kabartması (Garantili ve Anlık)
+        if (loadedFont && textVal.trim() !== "") {
+            let fontSize = height * 0.38;
+            const maxTextWidth = width - holeDia - 22;
 
-                const svgPathString = fontPath.toPathData(2);
-                const shapes = transformSvgPathToShapes(svgPathString);
+            let textGeo = new THREE.TextGeometry(textVal, {
+                font: loadedFont,
+                size: fontSize,
+                height: 1.2,
+                curveSegments: 12
+            });
+            
+            textGeo.computeBoundingBox();
+            let textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
 
-                if (shapes.length > 0) {
-                    const textGeo = new THREE.ExtrudeGeometry(shapes, { depth: 1.2, bevelEnabled: false });
-                    textGeo.center();
-
-                    const textMesh = new THREE.Mesh(textGeo, textMaterial);
-                    
-                    const maxAllowedWidth = width - holeDia - 25;
-                    const maxAllowedHeight = height - 10;
-                    
-                    let scaleX = maxAllowedWidth / (textWidth || 1);
-                    let scaleY = maxAllowedHeight / (textHeight || 1);
-                    let scale = Math.min(scaleX, scaleY, 1.5);
-
-                    textMesh.scale.set(scale, scale, 1);
-
-                    const finalX = -width / 2 + 12 + (textWidth * scale) / 2;
-                    textMesh.position.set(finalX, 0, thickness + 0.6);
-                    
-                    keychainGroup.add(textMesh);
-                }
-            } catch (e) {
-                console.warn("Metin oluşturulamadı:", e);
+            if (textWidth > maxTextWidth && textWidth > 0) {
+                const scale = maxTextWidth / textWidth;
+                fontSize *= scale;
+                textGeo.dispose();
+                textGeo = new THREE.TextGeometry(textVal, {
+                    font: loadedFont,
+                    size: fontSize,
+                    height: 1.2,
+                    curveSegments: 12
+                });
+                textGeo.computeBoundingBox();
             }
+
+            const textMesh = new THREE.Mesh(textGeo, textMaterial);
+            // Yazıyı plakanın üzerine tam ortalayarak konumlandır
+            textMesh.position.set(-width / 2 + 10, -fontSize / 2.5, thickness);
+            keychainGroup.add(textMesh);
         }
 
         scene.add(keychainGroup);
-    }
-
-    function transformSvgPathToShapes(svgPathStr) {
-        const svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        svgPath.setAttribute('d', svgPathStr);
-        return svgPath.toShapes(true);
     }
 
     function animate() {
@@ -262,7 +217,7 @@
         link.href = URL.createObjectURL(blob);
         
         const textVal = document.getElementById('textInput').value || "anahtarlik";
-        link.download = `${textVal.replace(/[^a-zA-z0-9ÇŞĞİÖÜçşğiöü]/g, '_')}_anahtarlik.stl`;
+        link.download = `${textVal.replace(/[^a-zA-z0-9]/g, '_')}_anahtarlik.stl`;
         link.click();
     }
 
