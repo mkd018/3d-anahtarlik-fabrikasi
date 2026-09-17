@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Parametrik Anahtarlık Fabrikası</title>
+    <!-- Three.js ve OrbitControls (Kullanıcının fareyle döndürmesi için) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+    <!-- Opentype.js: Tam Türkçe karakter destekli vektörleştirme -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
@@ -16,7 +19,8 @@
         input[type="text"], input[type="number"], select { width: 180px; padding: 6px 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: right; }
         select { text-align-last: right; }
         .full-width { width: 100%; display: block; margin-bottom: 8px; }
-        #canvas-container { width: 100%; height: 240px; background: #e9ecef; border-radius: 8px; margin: 15px 0; position: relative; overflow: hidden; }
+        #canvas-container { width: 100%; height: 240px; background: #e9ecef; border-radius: 8px; margin: 15px 0; position: relative; overflow: hidden; cursor: grab; }
+        #canvas-container:active { cursor: grabbing; }
         button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background: #0056b3; }
         hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
@@ -30,12 +34,13 @@
     
     <div class="form-group full-width" style="flex-direction: column; align-items: flex-start;">
         <label for="textInput">Anahtarlık Metni (Türkçe Destekli):</label>
-        <input type="text" id="textInput" value="DD_VECTOR" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
+        <input type="text" id="textInput" value="mustafa kerem doğan" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
     </div>
 
     <div class="form-group">
-        <label for="fontSelect">Yazı Tipi (30+ Seçenek):</label>
+        <label for="fontSelect">Yazı Tipi (Türkçe Uyumlu):</label>
         <select id="fontSelect" onchange="loadSelectedFont()">
+            <!-- Kararlı ve Türkçe Karakter Destekli Font Havuzu -->
             <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf">Roboto Bold</option>
             <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf">Roboto Regular</option>
             <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Bold.otf">Source Sans Pro Bold</option>
@@ -54,16 +59,9 @@
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/quicksand@5.0.8/files/quicksand-latin-700-normal.woff">Quicksand Bold</option>
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5.0.8/files/barlow-latin-700-normal.woff">Barlow Bold</option>
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/heebo@5.0.8/files/heebo-latin-700-normal.woff">Heebo Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/anton@5.0.8/files/anton-latin-400-normal.woff">Anton</option>
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/caveat@5.0.8/files/caveat-latin-700-normal.woff">Caveat Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/pacifico@5.0.8/files/pacifico-latin-400-normal.woff">Pacifico</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/courgette@5.0.8/files/courgette-latin-400-normal.woff">Courgette</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/lobster@5.0.8/files/lobster-latin-400-normal.woff">Lobster</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/dancing-script@5.0.8/files/dancing-script-latin-700-normal.woff">Dancing Script</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/amatic-sc@5.0.8/files/amatic-sc-latin-700-normal.woff">Amatic SC Bold</option>
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/comfortaa@5.0.8/files/comfortaa-latin-700-normal.woff">Comfortaa Bold</option>
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/josefin-sans@5.0.8/files/josefin-sans-latin-700-normal.woff">Josefin Sans Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.0.8/files/titillium-web-latin-700-normal.woff">Titillium Web Bold</option>
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/dosis@5.0.8/files/dosis-latin-700-normal.woff">Dosis Bold</option>
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/kanit@5.0.8/files/kanit-latin-700-normal.woff">Kanit Bold</option>
         </select>
@@ -99,7 +97,7 @@
 </div>
 
 <script>
-    let scene, camera, renderer, keychainGroup, currentFont = null;
+    let scene, camera, renderer, controls, keychainGroup, currentFont = null;
 
     function init3D() {
         const container = document.getElementById('canvas-container');
@@ -114,6 +112,11 @@
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
+
+        // Kullanıcının fareyle döndürüp yakınlaştırmasını sağlayan OrbitControls
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -172,7 +175,7 @@
         const thickness = parseFloat(document.getElementById('thicknessInput').value) || 3.5;
         const holeDia = parseFloat(document.getElementById('holeInput').value) || 4.5;
         const radius = parseFloat(document.getElementById('radiusInput').value) || 4;
-        const textVal = document.getElementById('textInput').value || "DD_VECTOR";
+        const textVal = document.getElementById('textInput').value || "MUSTAFA";
 
         // 1. Plaka ve Fiziksel Delik
         const rectShape = createRoundedRectShape(width, height, radius);
@@ -190,12 +193,12 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // 2. Metin Kabartması (Opentype.js Doğrudan Çizim Garantili)
+        // 2. Metin Kabartması (Türkçe Destekli Opentype.js)
         if (currentFont && textVal.trim() !== "") {
             try {
-                const targetTextSize = 10; // Sabit baz boyutu
+                const targetTextSize = 10;
                 const fontPath = currentFont.getPath(textVal, 0, 0, targetTextSize);
-                const boundingBox = fontPath.getBoundingBox(); // {x1, y1, x2, y2}
+                const boundingBox = fontPath.getBoundingBox();
                 const textWidth = boundingBox.x2 - boundingBox.x1;
                 const textHeight = boundingBox.y2 - boundingBox.y1;
 
@@ -204,21 +207,19 @@
 
                 if (shapes.length > 0) {
                     const textGeo = new THREE.ExtrudeGeometry(shapes, { depth: 1.2, bevelEnabled: false });
-                    textGeo.center(); // Geometriyi kendi merkezine oturt
+                    textGeo.center();
 
                     const textMesh = new THREE.Mesh(textGeo, textMaterial);
                     
-                    // Plaka boyutuna göre otomatik ölçekleme (Genişlik ve Yükseklik sınırına göre)
                     const maxAllowedWidth = width - holeDia - 25;
                     const maxAllowedHeight = height - 10;
                     
                     let scaleX = maxAllowedWidth / (textWidth || 1);
                     let scaleY = maxAllowedHeight / (textHeight || 1);
-                    let scale = Math.min(scaleX, scaleY, 1.5); // Çok büyümesini engelle
+                    let scale = Math.min(scaleX, scaleY, 1.5);
 
                     textMesh.scale.set(scale, scale, 1);
 
-                    // Konumlandırma: Plakanın sol orta kısmına yerleştir
                     const finalX = -width / 2 + 12 + (textWidth * scale) / 2;
                     textMesh.position.set(finalX, 0, thickness + 0.6);
                     
@@ -240,9 +241,7 @@
 
     function animate() {
         requestAnimationFrame(animate);
-        if (keychainGroup) {
-            keychainGroup.rotation.z += 0.005;
-        }
+        controls.update(); // Fare kontrolünü güncelle (Otomatik dönme kaldırıldı, kullanıcı döndürür)
         renderer.render(scene, camera);
     }
 
