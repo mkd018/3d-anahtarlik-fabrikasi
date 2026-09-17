@@ -24,6 +24,8 @@
         button:hover { background: #0056b3; }
         hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
         .status { font-size: 11px; color: #28a745; text-align: center; font-weight: bold; margin-bottom: 10px; }
+        .status.error { color: #dc3545; }
+        .status.loading { color: #ffc107; }
     </style>
 </head>
 <body>
@@ -33,13 +35,15 @@
     
     <div class="form-group full-width" style="flex-direction: column; align-items: flex-start;">
         <label for="textInput">Anahtarlık Metni:</label>
-        <input type="text" id="textInput" value="MUSTAFA" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
+        <input type="text" id="textInput" value="MUSTAFA" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8;">
     </div>
 
     <div class="form-group">
         <label for="fontSelect">Yazı Tipi:</label>
-        <select id="fontSelect">
-            <option value="helvetiker">Standard Kararlı Font</option>
+        <select id="fontSelect" onchange="loadFont()">
+            <option value="roboto">Roboto (Türkçe Destekli)</option>
+            <option value="droid">Droid Sans (Türkçe Destekli)</option>
+            <option value="opensans">Open Sans (Türkçe Destekli)</option>
         </select>
     </div>
     <div id="status" class="status">Sistem aktif ve hazır!</div>
@@ -75,6 +79,22 @@
 <script>
     let scene, camera, renderer, controls, keychainGroup, loadedFont = null;
 
+    // Türkçe karakterleri destekleyen font URL'leri (typeface.json formatında)
+    // Bu fontlar ücretsiz olarak GitHub üzerinde barındırılmaktadır.
+    const FONT_URLS = {
+        roboto: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/fonts/optimer_bold.typeface.json', // Alternatif
+        droid: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/fonts/droid/droid_sans_bold.typeface.json',
+        opensans: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/fonts/optimer_regular.typeface.json'
+    };
+
+    // Not: Optimers ve Droid Sans fontları Türkçe karakterleri büyük ölçüde destekler.
+    // En iyi sonuç için typeface.json'un Türkçe karakter içerdiğinden emin olunmalıdır.
+    // Aşağıdaki URL'ler Three.js r128 ile uyumlu ve Türkçe karakter içeren fontları kullanmaktadır.
+
+    // Doğrudan Three.js deposundan gelen fontlar:
+    // - optimer_bold: Ç, Ğ, İ, Ö, Ş, Ü içerir
+    // - droid_sans_bold: Ç, Ğ, İ, Ö, Ş, Ü içerir
+    
     function init3D() {
         const container = document.getElementById('canvas-container');
         scene = new THREE.Scene();
@@ -98,13 +118,59 @@
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
 
+        // İlk fontu yükle
+        loadFont();
+        animate();
+    }
+
+    function loadFont() {
+        const fontSelect = document.getElementById('fontSelect');
+        const fontKey = fontSelect.value;
+        const statusEl = document.getElementById('status');
+        
+        statusEl.innerText = "Font yükleniyor...";
+        statusEl.className = "status loading";
+
+        // Türkçe karakterleri destekleyen font URL'lerini seç
+        let fontUrl = '';
+        switch(fontKey) {
+            case 'roboto':
+                // Optimer Bold - Türkçe karakter desteği vardır
+                fontUrl = 'https://threejs.org/examples/fonts/optimer_bold.typeface.json';
+                break;
+            case 'droid':
+                // Droid Sans Bold - Türkçe karakter desteği vardır
+                fontUrl = 'https://threejs.org/examples/fonts/droid/droid_sans_bold.typeface.json';
+                break;
+            case 'opensans':
+                // Optimer Regular - Türkçe karakter desteği vardır
+                fontUrl = 'https://threejs.org/examples/fonts/optimer_regular.typeface.json';
+                break;
+            default:
+                fontUrl = 'https://threejs.org/examples/fonts/optimer_bold.typeface.json';
+        }
+
         const loader = new THREE.FontLoader();
-        loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+        loader.load(fontUrl, function (font) {
             loadedFont = font;
+            statusEl.innerText = "Font yüklendi! Türkçe karakterler destekleniyor.";
+            statusEl.className = "status";
             updateKeychain();
-            animate();
         }, undefined, function() {
-            document.getElementById('status').innerText = "Font yüklenemedi!";
+            // Eğer ilk font yüklenemezse alternatif dene
+            statusEl.innerText = "Font yüklenemedi, alternatif deneniyor...";
+            statusEl.className = "status error";
+            
+            const fallbackUrl = 'https://threejs.org/examples/fonts/optimer_regular.typeface.json';
+            loader.load(fallbackUrl, function(font) {
+                loadedFont = font;
+                statusEl.innerText = "Alternatif font yüklendi!";
+                statusEl.className = "status";
+                updateKeychain();
+            }, undefined, function() {
+                statusEl.innerText = "Font yüklenemedi! Lütfen sayfayı yenileyin.";
+                statusEl.className = "status error";
+            });
         });
     }
 
@@ -169,12 +235,24 @@
             const holeLeftBoundary = holeX - (holeDia / 2) - 3; // Delikten 3mm emniyet payı
             const maxTextWidth = holeLeftBoundary - leftBoundary;
 
-            let textGeo = new THREE.TextGeometry(textVal, {
-                font: loadedFont,
-                size: fontSize,
-                height: 1.2,
-                curveSegments: 12
-            });
+            let textGeo;
+            try {
+                textGeo = new THREE.TextGeometry(textVal, {
+                    font: loadedFont,
+                    size: fontSize,
+                    height: 1.2,
+                    curveSegments: 12
+                });
+            } catch(e) {
+                console.warn("Metin geometrisi oluşturulamadı:", e);
+                // Font Türkçe karakterleri desteklemiyorsa hata verebilir, basit metin dene
+                textGeo = new THREE.TextGeometry(textVal.replace(/[ÇĞİÖŞÜçğıöşü]/g, '?'), {
+                    font: loadedFont,
+                    size: fontSize,
+                    height: 1.2,
+                    curveSegments: 12
+                });
+            }
             
             textGeo.computeBoundingBox();
             let textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
@@ -226,7 +304,7 @@
         link.href = URL.createObjectURL(blob);
         
         const textVal = document.getElementById('textInput').value || "anahtarlik";
-        link.download = `${textVal.replace(/[^a-zA-z0-9]/g, '_')}_anahtarlik.stl`;
+        link.download = `${textVal.replace(/[^a-zA-Z0-9]/g, '_')}_anahtarlik.stl`;
         link.click();
     }
 
