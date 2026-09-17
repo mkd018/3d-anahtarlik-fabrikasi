@@ -142,7 +142,7 @@
         const radius = parseFloat(document.getElementById('radiusInput').value) || 4;
         const textVal = document.getElementById('textInput').value || "MUSTAFA";
 
-        // 1. Delik Konumu: Sağ kenardan tam 2 mm içeride ve dikeyde ortada
+        // 1. Delik Konumu: Sağ kenardan tam 2 mm içeride
         const holeX = (width / 2) - 2 - (holeDia / 2);
         const holeY = 0;
 
@@ -160,14 +160,13 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // 3. Metin Kabartması (Soldan 2mm, Üstten/Alttan 2mm, Delikten 3mm güvenli uzaklıkta)
+        // 3. Metin Kabartması (Sol Kenar ile Delik Arasında Tam Ortalanmış)
         if (loadedFont && textVal.trim() !== "") {
             const availableHeight = height - 4; // Üstten ve alttan 2'şer mm boşluk
             let fontSize = availableHeight * 0.8;
 
-            // Delik sol kenarı - delik yarıçapı - delikle yazı arası emniyet payı (3mm)
-            const holeLeftBoundary = holeX - (holeDia / 2) - 3;
             const leftBoundary = -width / 2 + 2; // Soldan 2mm boşluk
+            const holeLeftBoundary = holeX - (holeDia / 2) - 3; // Delikten 3mm emniyet payı
             const maxTextWidth = holeLeftBoundary - leftBoundary;
 
             let textGeo = new THREE.TextGeometry(textVal, {
@@ -191,11 +190,16 @@
                     curveSegments: 12
                 });
                 textGeo.computeBoundingBox();
+                textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
             }
 
             const textMesh = new THREE.Mesh(textGeo, textMaterial);
-            // Soldan tam 2mm içeride, dikeyde tam ortada
-            textMesh.position.set(leftBoundary, -fontSize / 2.5, thickness);
+            
+            // Sol sınır ile delik sol sınırı arasında tam ortalama hesaplaması
+            const centerX = leftBoundary + (maxTextWidth - textWidth) / 2;
+            const posY = -fontSize / 2.5;
+            
+            textMesh.position.set(centerX, posY, thickness);
             keychainGroup.add(textMesh);
         }
 
