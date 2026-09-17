@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Parametrik Anahtarlık Fabrikası</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 480px; box-sizing: border-box; }
@@ -21,7 +20,7 @@
         button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background: #0056b3; }
         hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
-        .status { font-size: 11px; color: #28a745; text-align: center; font-weight: bold; margin-bottom: 10px; }
+        .status { font-size: 11px; color: #007bff; text-align: center; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -30,17 +29,46 @@
     <h2>3D Anahtarlık Fabrikası</h2>
     
     <div class="form-group full-width" style="flex-direction: column; align-items: flex-start;">
-        <label for="textInput">Anahtarlık Metni:</label>
+        <label for="textInput">Anahtarlık Metni (Türkçe Destekli):</label>
         <input type="text" id="textInput" value="DD_VECTOR" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
     </div>
 
     <div class="form-group">
-        <label for="fontSelect">Yazı Tipi:</label>
-        <select id="fontSelect" onchange="updateKeychain()">
-            <option value="helvetiker">Standard Bold (Kararlı)</option>
+        <label for="fontSelect">Yazı Tipi (30+ Seçenek):</label>
+        <select id="fontSelect" onchange="loadSelectedFont()">
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf">Roboto Bold</option>
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf">Roboto Regular</option>
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Bold.otf">Source Sans Pro Bold</option>
+            <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Regular.otf">Source Sans Pro Regular</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/montserrat@5.0.8/files/montserrat-latin-700-normal.woff">Montserrat Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/lato@5.0.8/files/lato-latin-700-normal.woff">Lato Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.0.8/files/poppins-latin-700-normal.woff">Poppins Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/oswald@5.0.8/files/oswald-latin-700-normal.woff">Oswald Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/raleway@5.0.8/files/raleway-latin-700-normal.woff">Raleway Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/ubuntu@5.0.8/files/ubuntu-latin-700-normal.woff">Ubuntu Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5.0.8/files/nunito-latin-700-normal.woff">Nunito Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/rubik@5.0.8/files/rubik-latin-700-normal.woff">Rubik Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@5.0.8/files/pt-sans-latin-700-normal.woff">PT Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/fira-sans@5.0.8/files/fira-sans-latin-700-normal.woff">Fira Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/work-sans@5.0.8/files/work-sans-latin-700-normal.woff">Work Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/quicksand@5.0.8/files/quicksand-latin-700-normal.woff">Quicksand Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5.0.8/files/barlow-latin-700-normal.woff">Barlow Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/heebo@5.0.8/files/heebo-latin-700-normal.woff">Heebo Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/anton@5.0.8/files/anton-latin-400-normal.woff">Anton</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/caveat@5.0.8/files/caveat-latin-700-normal.woff">Caveat Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/pacifico@5.0.8/files/pacifico-latin-400-normal.woff">Pacifico</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/courgette@5.0.8/files/courgette-latin-400-normal.woff">Courgette</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/lobster@5.0.8/files/lobster-latin-400-normal.woff">Lobster</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/dancing-script@5.0.8/files/dancing-script-latin-700-normal.woff">Dancing Script</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/amatic-sc@5.0.8/files/amatic-sc-latin-700-normal.woff">Amatic SC Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/comfortaa@5.0.8/files/comfortaa-latin-700-normal.woff">Comfortaa Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/josefin-sans@5.0.8/files/josefin-sans-latin-700-normal.woff">Josefin Sans Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.0.8/files/titillium-web-latin-700-normal.woff">Titillium Web Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/dosis@5.0.8/files/dosis-latin-700-normal.woff">Dosis Bold</option>
+            <option value="https://cdn.jsdelivr.net/npm/@fontsource/kanit@5.0.8/files/kanit-latin-700-normal.woff">Kanit Bold</option>
         </select>
     </div>
-    <div id="status" class="status">Sistem aktif ve hazır.</div>
+    <div id="status" class="status">Font yükleniyor...</div>
 
     <hr>
 
@@ -71,7 +99,7 @@
 </div>
 
 <script>
-    let scene, camera, renderer, keychainGroup, loadedFont = null;
+    let scene, camera, renderer, keychainGroup, currentFont = null;
 
     function init3D() {
         const container = document.getElementById('canvas-container');
@@ -92,14 +120,23 @@
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
 
-        // Kesin yüklenen standart güvenli Three.js fontu
-        const loader = new THREE.FontLoader();
-        loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
-            loadedFont = font;
+        loadSelectedFont();
+        animate();
+    }
+
+    function loadSelectedFont() {
+        const fontUrl = document.getElementById('fontSelect').value;
+        document.getElementById('status').innerText = "Font yükleniyor...";
+        
+        opentype.load(fontUrl, function(err, font) {
+            if (err) {
+                document.getElementById('status').innerText = "Font yüklenemedi.";
+                currentFont = null;
+            } else {
+                currentFont = font;
+                document.getElementById('status').innerText = "Font yüklendi ve uygulandı!";
+            }
             updateKeychain();
-            animate();
-        }, undefined, function() {
-            document.getElementById('status').innerText = "Font yükleme hatası!";
         });
     }
 
@@ -153,41 +190,52 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // 2. Metin Kabartması (Eğer font yüklendiyse)
-        if (loadedFont && textVal.trim() !== "") {
-            let fontSize = height * 0.38;
-            const maxTextWidth = width - holeDia - 22;
+        // 2. Metin Kabartması (Opentype.js Doğrudan Çizim Garantili)
+        if (currentFont && textVal.trim() !== "") {
+            try {
+                const targetTextSize = 10; // Sabit baz boyutu
+                const fontPath = currentFont.getPath(textVal, 0, 0, targetTextSize);
+                const boundingBox = fontPath.getBoundingBox(); // {x1, y1, x2, y2}
+                const textWidth = boundingBox.x2 - boundingBox.x1;
+                const textHeight = boundingBox.y2 - boundingBox.y1;
 
-            let textGeo = new THREE.TextGeometry(textVal, {
-                font: loadedFont,
-                size: fontSize,
-                height: 1.2,
-                curveSegments: 12
-            });
-            
-            textGeo.computeBoundingBox();
-            let textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
+                const svgPathString = fontPath.toPathData(2);
+                const shapes = transformSvgPathToShapes(svgPathString);
 
-            if (textWidth > maxTextWidth && textWidth > 0) {
-                const scale = maxTextWidth / textWidth;
-                fontSize *= scale;
-                textGeo.dispose();
-                textGeo = new THREE.TextGeometry(textVal, {
-                    font: loadedFont,
-                    size: fontSize,
-                    height: 1.2,
-                    curveSegments: 12
-                });
-                textGeo.computeBoundingBox();
+                if (shapes.length > 0) {
+                    const textGeo = new THREE.ExtrudeGeometry(shapes, { depth: 1.2, bevelEnabled: false });
+                    textGeo.center(); // Geometriyi kendi merkezine oturt
+
+                    const textMesh = new THREE.Mesh(textGeo, textMaterial);
+                    
+                    // Plaka boyutuna göre otomatik ölçekleme (Genişlik ve Yükseklik sınırına göre)
+                    const maxAllowedWidth = width - holeDia - 25;
+                    const maxAllowedHeight = height - 10;
+                    
+                    let scaleX = maxAllowedWidth / (textWidth || 1);
+                    let scaleY = maxAllowedHeight / (textHeight || 1);
+                    let scale = Math.min(scaleX, scaleY, 1.5); // Çok büyümesini engelle
+
+                    textMesh.scale.set(scale, scale, 1);
+
+                    // Konumlandırma: Plakanın sol orta kısmına yerleştir
+                    const finalX = -width / 2 + 12 + (textWidth * scale) / 2;
+                    textMesh.position.set(finalX, 0, thickness + 0.6);
+                    
+                    keychainGroup.add(textMesh);
+                }
+            } catch (e) {
+                console.warn("Metin oluşturulamadı:", e);
             }
-
-            const textMesh = new THREE.Mesh(textGeo, textMaterial);
-            // Harfleri plakanın tam üzerine ortalayarak yerleştir
-            textMesh.position.set(-width / 2 + 8, -fontSize / 2.5, thickness);
-            keychainGroup.add(textMesh);
         }
 
         scene.add(keychainGroup);
+    }
+
+    function transformSvgPathToShapes(svgPathStr) {
+        const svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svgPath.setAttribute('d', svgPathStr);
+        return svgPath.toShapes(true);
     }
 
     function animate() {
@@ -212,7 +260,7 @@
         link.href = URL.createObjectURL(blob);
         
         const textVal = document.getElementById('textInput').value || "anahtarlik";
-        link.download = `${textVal.replace(/[^a-zA-z0-9]/g, '_')}_anahtarlik.stl`;
+        link.download = `${textVal.replace(/[^a-zA-z0-9ÇŞĞİÖÜçşğiöü]/g, '_')}_anahtarlik.stl`;
         link.click();
     }
 
