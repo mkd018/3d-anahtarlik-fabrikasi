@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Parametrik Anahtarlık Fabrikası</title>
-    <!-- Three.js ve STL Exporter -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
-    <!-- Opentype.js: Türkçe karakter ve font vektörleştirme için -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
@@ -32,13 +30,12 @@
     
     <div class="form-group full-width" style="flex-direction: column; align-items: flex-start;">
         <label for="textInput">Anahtarlık Metni (Türkçe Destekli):</label>
-        <input type="text" id="textInput" value="TUSAŞ" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
+        <input type="text" id="textInput" value="DD_VECTOR" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;">
     </div>
 
     <div class="form-group">
         <label for="fontSelect">Yazı Tipi (30+ Seçenek):</label>
         <select id="fontSelect" onchange="loadSelectedFont()">
-            <!-- 30+ Popüler ve Kararlı Font Seçeneği -->
             <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf">Roboto Bold</option>
             <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf">Roboto Regular</option>
             <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Bold.otf">Source Sans Pro Bold</option>
@@ -71,7 +68,7 @@
             <option value="https://cdn.jsdelivr.net/npm/@fontsource/kanit@5.0.8/files/kanit-latin-700-normal.woff">Kanit Bold</option>
         </select>
     </div>
-    <div id="status" class="status">Font yükleniyor...</div>
+    <div id="status" class="status">Sistem hazır.</div>
 
     <hr>
 
@@ -133,17 +130,14 @@
         
         opentype.load(fontUrl, function(err, font) {
             if (err) {
-                document.getElementById('status').innerText = "Font yüklenemedi, yedek font kullanılıyor.";
+                document.getElementById('status').innerText = "Font yüklenemedi.";
                 currentFont = null;
             } else {
                 currentFont = font;
-                document.getElementById('status').innerText = "Model hazır!";
+                document.getElementById('status').innerText = "Font yüklendi ve uygulandı!";
             }
             updateKeychain();
         });
-        
-        // Font yüklenene kadar boş kalmasın diye anında çizdir
-        updateKeychain();
     }
 
     function createRoundedRectShape(width, height, radius) {
@@ -178,9 +172,9 @@
         const thickness = parseFloat(document.getElementById('thicknessInput').value) || 3.5;
         const holeDia = parseFloat(document.getElementById('holeInput').value) || 4.5;
         const radius = parseFloat(document.getElementById('radiusInput').value) || 4;
-        const textVal = document.getElementById('textInput').value || "TEXT";
+        const textVal = document.getElementById('textInput').value || "DD_VECTOR";
 
-        // 1. Plaka ve Fiziksel Delik (Asla kaybolmaz)
+        // 1. Plaka ve Fiziksel Delik
         const rectShape = createRoundedRectShape(width, height, radius);
         
         const holeX = width / 2 - radius - (holeDia / 2) - 3;
@@ -196,12 +190,12 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // 2. Metin İşleme (Opentype.js ile Türkçe Karakter Vektörleştirme)
-        let fontSize = height * 0.38;
-        const maxTextWidth = width - holeDia - 22;
-
-        if (currentFont) {
+        // 2. Metin İşleme (Opentype.js)
+        if (currentFont && textVal.trim() !== "") {
             try {
+                let fontSize = height * 0.38;
+                const maxTextWidth = width - holeDia - 22;
+
                 let pathData = currentFont.getPath(textVal, 0, 0, fontSize);
                 let svgPath = pathData.toPathData(2);
                 let shapes = transformSvgPathToShapes(svgPath);
@@ -220,14 +214,16 @@
                         tempGeo.dispose();
                         tempGeo = new THREE.ExtrudeGeometry(shapes, { depth: 1.2, bevelEnabled: false });
                         tempGeo.computeBoundingBox();
+                        textWidth = tempGeo.boundingBox.max.x - tempGeo.boundingBox.min.x;
                     }
 
                     const textMesh = new THREE.Mesh(tempGeo, textMaterial);
+                    // Metni plaka üzerinde sola yaslayıp ortalayarak konumlandır
                     textMesh.position.set(-width / 2 + 8, -fontSize / 2.8, thickness);
                     keychainGroup.add(textMesh);
                 }
             } catch (e) {
-                console.warn("Metin oluşturulamadı.");
+                console.warn("Metin oluşturulurken hata:", e);
             }
         }
 
