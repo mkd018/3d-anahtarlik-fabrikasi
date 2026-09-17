@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Parametrik Anahtarlık Fabrikası</title>
-    <!-- Three.js ve OrbitControls (Kullanıcının fareyle döndürmesi için) -->
+    <!-- Three.js ve OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
-    <!-- Opentype.js: Tam Türkçe karakter destekli vektörleştirme -->
+    <!-- Opentype.js (TTF/OTF Destekli) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
@@ -40,30 +40,34 @@
     <div class="form-group">
         <label for="fontSelect">Yazı Tipi (Türkçe Uyumlu):</label>
         <select id="fontSelect" onchange="loadSelectedFont()">
-            <!-- Kararlı ve Türkçe Karakter Destekli Font Havuzu -->
+            <!-- Kesin Çalışan TTF/OTF Font Havuzu -->
             <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf">Roboto Bold</option>
             <option value="https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf">Roboto Regular</option>
             <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Bold.otf">Source Sans Pro Bold</option>
             <option value="https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Regular.otf">Source Sans Pro Regular</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/montserrat@5.0.8/files/montserrat-latin-700-normal.woff">Montserrat Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/lato@5.0.8/files/lato-latin-700-normal.woff">Lato Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.0.8/files/poppins-latin-700-normal.woff">Poppins Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/oswald@5.0.8/files/oswald-latin-700-normal.woff">Oswald Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/raleway@5.0.8/files/raleway-latin-700-normal.woff">Raleway Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/ubuntu@5.0.8/files/ubuntu-latin-700-normal.woff">Ubuntu Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/nunito@5.0.8/files/nunito-latin-700-normal.woff">Nunito Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/rubik@5.0.8/files/rubik-latin-700-normal.woff">Rubik Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@5.0.8/files/pt-sans-latin-700-normal.woff">PT Sans Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/fira-sans@5.0.8/files/fira-sans-latin-700-normal.woff">Fira Sans Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/work-sans@5.0.8/files/work-sans-latin-700-normal.woff">Work Sans Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/quicksand@5.0.8/files/quicksand-latin-700-normal.woff">Quicksand Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5.0.8/files/barlow-latin-700-normal.woff">Barlow Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/heebo@5.0.8/files/heebo-latin-700-normal.woff">Heebo Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/caveat@5.0.8/files/caveat-latin-700-normal.woff">Caveat Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/comfortaa@5.0.8/files/comfortaa-latin-700-normal.woff">Comfortaa Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/josefin-sans@5.0.8/files/josefin-sans-latin-700-normal.woff">Josefin Sans Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/dosis@5.0.8/files/dosis-latin-700-normal.woff">Dosis Bold</option>
-            <option value="https://cdn.jsdelivr.net/npm/@fontsource/kanit@5.0.8/files/kanit-latin-700-normal.woff">Kanit Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/lato/Lato-Bold.ttf">Lato Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Bold.ttf">Poppins Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/oswald/Oswald-Bold.ttf">Oswald Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/raleway/Raleway-Bold.ttf">Raleway Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/ubuntu/Ubuntu-Bold.ttf">Ubuntu Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/nunito/Nunito-Bold.ttf">Nunito Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/rubik/Rubik-Bold.ttf">Rubik Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Bold.ttf">PT Sans Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/firasans/FiraSans-Bold.ttf">Fira Sans Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/worksans/WorkSans-Bold.ttf">Work Sans Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/quicksand/Quicksand-Bold.ttf">Quicksand Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/barlow/Barlow-Bold.ttf">Barlow Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/heebo/Heebo-Bold.ttf">Heebo Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/apache/anton/Anton-Regular.ttf">Anton</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/caveat/Caveat-Bold.ttf">Caveat Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/pacifico/Pacifico-Regular.ttf">Pacifico</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/courgette/Courgette-Regular.ttf">Courgette</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/lobster/Lobster-Regular.ttf">Lobster</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/amaticsc/AmaticSC-Bold.ttf">Amatic SC Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/comfortaa/Comfortaa-Bold.ttf">Comfortaa Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/josefinsans/JosefinSans-Bold.ttf">Josefin Sans Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/dosis/Dosis-Bold.ttf">Dosis Bold</option>
+            <option value="https://github.com/google/fonts/raw/main/ofl/kanit/Kanit-Bold.ttf">Kanit Bold</option>
         </select>
     </div>
     <div id="status" class="status">Font yükleniyor...</div>
@@ -113,7 +117,6 @@
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
 
-        // Kullanıcının fareyle döndürüp yakınlaştırmasını sağlayan OrbitControls
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
@@ -193,7 +196,7 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // 2. Metin Kabartması (Türkçe Destekli Opentype.js)
+        // 2. Metin Kabartması
         if (currentFont && textVal.trim() !== "") {
             try {
                 const targetTextSize = 10;
@@ -241,7 +244,7 @@
 
     function animate() {
         requestAnimationFrame(animate);
-        controls.update(); // Fare kontrolünü güncelle (Otomatik dönme kaldırıldı, kullanıcı döndürür)
+        controls.update();
         renderer.render(scene, camera);
     }
 
