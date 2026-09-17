@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Parametrik Anahtarlık Fabrikası</title>
-    <!-- Three.js, OrbitControls ve TextGeometry -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
@@ -99,7 +98,6 @@
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
 
-        // Three.js resmi ve kararlı font yükleyicisi
         const loader = new THREE.FontLoader();
         loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
             loadedFont = font;
@@ -144,10 +142,10 @@
         const radius = parseFloat(document.getElementById('radiusInput').value) || 4;
         const textVal = document.getElementById('textInput').value || "MUSTAFA";
 
-        // 1. Plaka ve Fiziksel Delik
+        // 1. Plaka ve Fiziksel Delik (Sağ kenardan tam 3 mm içeride)
         const rectShape = createRoundedRectShape(width, height, radius);
         
-        const holeX = width / 2 - radius - (holeDia / 2) - 3;
+        const holeX = (width / 2) - 3 - (holeDia / 2);
         const holeY = 0;
         const holePath = new THREE.Path();
         holePath.absarc(holeX, holeY, holeDia / 2, 0, Math.PI * 2, true);
@@ -160,10 +158,15 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // 2. Metin Kabartması (Garantili ve Anlık)
+        // 2. Metin Kabartması (Soldan, Üstten ve Alttan tam 2 mm mesafeli)
         if (loadedFont && textVal.trim() !== "") {
-            let fontSize = height * 0.38;
-            const maxTextWidth = width - holeDia - 22;
+            // Kullanılabilir dikey alan = Toplam Yükseklik - (Üst 2mm + Alt 2mm)
+            const availableHeight = height - 4;
+            let fontSize = availableHeight * 0.85; // Alana göre dinamik boyut
+
+            // Kullanılabilir maksimum genişlik = Soldan 2mm boşluk ile delik başlangıç noktası arası
+            const holeLeftEdge = width / 2 - 3 - holeDia;
+            const maxTextWidth = holeLeftEdge - (-width / 2 + 2) - 5; // Güvenlik payı
 
             let textGeo = new THREE.TextGeometry(textVal, {
                 font: loadedFont,
@@ -186,11 +189,15 @@
                     curveSegments: 12
                 });
                 textGeo.computeBoundingBox();
+                textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
             }
 
             const textMesh = new THREE.Mesh(textGeo, textMaterial);
-            // Yazıyı plakanın üzerine tam ortalayarak konumlandır
-            textMesh.position.set(-width / 2 + 10, -fontSize / 2.5, thickness);
+            // Soldan tam 2mm, dikeyde ise tam ortalanmış konumlandırma
+            const posX = -width / 2 + 2;
+            const posY = -fontSize / 2.5;
+            
+            textMesh.position.set(posX, posY, thickness);
             keychainGroup.add(textMesh);
         }
 
