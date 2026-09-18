@@ -82,8 +82,8 @@
 <script>
     let scene, camera, renderer, controls, keychainGroup, loadedFont = null;
 
-    // Kabartma payı - yazı plakanın içinden sadece bu kadar dışarı çıkar
-    const KABARTMA_PAYI = 0.4;
+    // Kabartma payı - toplam kalınlığın ne kadarı yazı için ayrılır
+    const KABARTMA_ORANI = 0.35; // Toplam kalınlığın %35'i kabartma
 
     function init3D() {
         const container = document.getElementById('canvas-container');
@@ -107,8 +107,10 @@
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        backLight.position.set(-10, 20, -30);
+        scene.add(backLight);
 
-        // İlk fontu yükle
         const defaultFont = document.getElementById('fontSelect').value;
         loadFont(defaultFont);
         animate();
@@ -184,7 +186,15 @@
         const holeY = 0;
 
         // ============================================
-        // PLAKA
+        // TOPLAM KALINLIĞI İKİYE BÖL
+        // Plaka yüksekliği = thickness * (1 - KABARTMA_ORANI)
+        // Yazı yüksekliği  = thickness * KABARTMA_ORANI
+        // ============================================
+        const kabartmaYuksekligi = thickness * KABARTMA_ORANI;
+        const plakaYuksekligi = thickness - kabartmaYuksekligi;
+
+        // ============================================
+        // PLAKA (Turkuaz) - Plaka alt kısımda başlar
         // ============================================
         const rectShape = createRoundedRectShape(width, height, radius);
         const holePath = new THREE.Path();
@@ -192,7 +202,7 @@
         rectShape.holes.push(holePath);
 
         const extrudeSettings = { 
-            depth: thickness, 
+            depth: plakaYuksekligi, 
             bevelEnabled: true, 
             bevelSegments: 2, 
             steps: 1, 
@@ -200,30 +210,31 @@
             bevelThickness: 0.15 
         };
         const plateGeo = new THREE.ExtrudeGeometry(rectShape, extrudeSettings);
-        plateGeo.center();
+        
+        // Plakayı ortala: alt kısmı 0'da, üstü plakaYuksekligi'nde
+        // Ama sonra tüm modelin merkezini 0'a almak için kaydırma yapacağız
         const plateMesh = new THREE.Mesh(plateGeo, material);
-        plateMesh.position.set(0, 0, thickness / 2);
+        // Plakayı z ekseninde konumlandır: 0'dan başlasın, yukarı doğru
+        plateMesh.position.set(0, 0, 0);
         keychainGroup.add(plateMesh);
 
         // ============================================
-        // YAZI - Plakanın içine gömülü, Türkçe karakter payı ile
+        // YAZI (Beyaz) - Plakanın ÜSTÜNDE, kabartma olarak
+        // Yazı plakanın bittiği yerden başlar ve yukarı doğru uzanır
         // ============================================
         if (textVal.trim() !== "") {
-            // Yazı boyutu plaka yüksekliğinin %45'i (Türkçe karakterlerin uzantıları için pay)
             let fontSize = height * 0.45;
 
             const leftBoundary = -width / 2 + 2;
             const holeLeftBoundary = holeX - (holeDia / 2) - 3;
             const maxTextWidth = holeLeftBoundary - leftBoundary;
 
-            const textDepth = KABARTMA_PAYI;
-            
             let textGeo;
             try {
                 textGeo = new THREE.TextGeometry(textVal, {
                     font: loadedFont,
                     size: fontSize,
-                    height: textDepth,
+                    height: kabartmaYuksekligi,
                     curveSegments: 12
                 });
             } catch(e) {
@@ -238,7 +249,7 @@
                 textGeo = new THREE.TextGeometry(safeText, {
                     font: loadedFont,
                     size: fontSize,
-                    height: textDepth,
+                    height: kabartmaYuksekligi,
                     curveSegments: 12
                 });
             }
@@ -247,7 +258,7 @@
             let textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
             let textHeightActual = textGeo.boundingBox.max.y - textGeo.boundingBox.min.y;
 
-            // Genişlik sığmazsa küçült
+            // Genişlik sığdır
             if (textWidth > maxTextWidth && textWidth > 0) {
                 const scale = maxTextWidth / textWidth;
                 fontSize *= scale;
@@ -255,7 +266,7 @@
                 textGeo = new THREE.TextGeometry(textVal, {
                     font: loadedFont,
                     size: fontSize,
-                    height: textDepth,
+                    height: kabartmaYuksekligi,
                     curveSegments: 12
                 });
                 textGeo.computeBoundingBox();
@@ -263,8 +274,8 @@
                 textHeightActual = textGeo.boundingBox.max.y - textGeo.boundingBox.min.y;
             }
 
-            // Yükseklik sığmazsa küçült (Ğ, Ş gibi uzun karakterler için)
-            const maxTextHeight = height * 0.65;
+            // Yükseklik sığdır
+            const maxTextHeight = height * 0.75;
             if (textHeightActual > maxTextHeight && textHeightActual > 0) {
                 const scale = maxTextHeight / textHeightActual;
                 fontSize *= scale;
@@ -272,7 +283,7 @@
                 textGeo = new THREE.TextGeometry(textVal, {
                     font: loadedFont,
                     size: fontSize,
-                    height: textDepth,
+                    height: kabartmaYuksekligi,
                     curveSegments: 12
                 });
                 textGeo.computeBoundingBox();
@@ -281,14 +292,19 @@
 
             const textMesh = new THREE.Mesh(textGeo, textMaterial);
             
-            // Yazıyı plakanın içine göm
             const centerX = leftBoundary + (maxTextWidth - textWidth) / 2;
             const posY = -fontSize / 2.5;
-            const textZPos = thickness / 2 - textDepth;
             
-            textMesh.position.set(centerX, posY, textZPos);
+            // ÖNEMLİ: Yazının ALT kısmı plakanın ÜST kısmıyla aynı hizada olsun
+            // Yani yazı z = plakaYuksekligi'nden başlar ve yukarı doğru kabartma yapar
+            // Three.js TextGeometry'de "height" z ekseninde 0'dan başlar
+            textMesh.position.set(centerX, posY, plakaYuksekligi);
             keychainGroup.add(textMesh);
         }
+
+        // Tüm modeli merkeze al (görsel ortalama için)
+        const toplamYukseklik = thickness;
+        keychainGroup.position.set(0, 0, -toplamYukseklik / 2);
 
         scene.add(keychainGroup);
     }
