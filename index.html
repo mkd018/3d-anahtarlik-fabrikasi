@@ -42,9 +42,6 @@
     <div class="form-group">
         <label for="fontSelect">Yazı Tipi:</label>
         <select id="fontSelect" onchange="changeFont()">
-            <option value="Google_Sans_Regular.json">Google Sans - Normal</option>
-            <option value="Google_Sans_Italic.json">Google Sans - İtalik</option>
-            <option value="Google_Sans_Flex_Regular.json">Google Sans Flex - Normal</option>
             <option value="Open_Sans_Regular.json">Open Sans - Normal</option>
             <option value="Open_Sans_Italic.json">Open Sans - İtalik</option>
             <option value="Roboto_Regular.json">Roboto - Normal</option>
@@ -85,13 +82,7 @@
 <script>
     let scene, camera, renderer, controls, keychainGroup, loadedFont = null;
 
-    // ============================================
-    // FONT LİSTESİ - Reponuza yüklediğiniz fontlar
-    // ============================================
     const FONT_FILES = {
-        'Google_Sans_Regular.json': 'Google Sans - Normal',
-        'Google_Sans_Italic.json': 'Google Sans - İtalik',
-        'Google_Sans_Flex_Regular.json': 'Google Sans Flex - Normal',
         'Open_Sans_Regular.json': 'Open Sans - Normal',
         'Open_Sans_Italic.json': 'Open Sans - İtalik',
         'Roboto_Regular.json': 'Roboto - Normal',
@@ -121,14 +112,12 @@
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
 
-        // Varsayılan fontu yükle
         const defaultFont = document.getElementById('fontSelect').value;
         loadFont(defaultFont);
 
         animate();
     }
 
-    // Font yükleme fonksiyonu
     function loadFont(fontFileName) {
         const statusEl = document.getElementById('status');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -151,14 +140,13 @@
             undefined,
             function (error) {
                 console.error("Font yüklenemedi:", fontFileName, error);
-                statusEl.innerText = `❌ ${fontFileName} yüklenemedi! Dosya repoda var mı?`;
+                statusEl.innerText = `❌ ${fontFileName} yüklenemedi!`;
                 statusEl.className = "status error";
                 downloadBtn.disabled = true;
             }
         );
     }
 
-    // Yazı tipi değiştiğinde çağrılır
     function changeFont() {
         const selectedFont = document.getElementById('fontSelect').value;
         loadFont(selectedFont);
@@ -201,7 +189,6 @@
         const holeX = (width / 2) - 2 - (holeDia / 2);
         const holeY = 0;
 
-        // Plaka
         const rectShape = createRoundedRectShape(width, height, radius);
         const holePath = new THREE.Path();
         holePath.absarc(holeX, holeY, holeDia / 2, 0, Math.PI * 2, true);
@@ -214,7 +201,6 @@
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
-        // Metin
         if (textVal.trim() !== "") {
             const availableHeight = height - 4;
             let fontSize = availableHeight * 0.8;
@@ -232,7 +218,7 @@
                     curveSegments: 12
                 });
             } catch(e) {
-                console.warn("Metin oluşturulamadı, karakterler fontta eksik:", e);
+                console.warn("Metin oluşturulamadı:", e);
                 const safeText = textVal
                     .replace(/Ç/g, 'C').replace(/ç/g, 'c')
                     .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
