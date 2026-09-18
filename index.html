@@ -16,6 +16,7 @@
         .form-group { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         label { font-weight: 600; color: #555; font-size: 14px; }
         input[type="text"], input[type="number"], select { width: 200px; padding: 6px 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: right; }
+        select { text-align-last: right; cursor: pointer; }
         .full-width { width: 100%; display: block; margin-bottom: 8px; }
         #canvas-container { width: 100%; height: 240px; background: #e9ecef; border-radius: 8px; margin: 15px 0; position: relative; overflow: hidden; cursor: grab; }
         #canvas-container:active { cursor: grabbing; }
@@ -41,9 +42,10 @@
     <div class="form-group">
         <label for="fontSelect">Yazı Tipi:</label>
         <select id="fontSelect" onchange="changeFont()">
-            <option value="https://threejs.org/examples/fonts/optimer_bold.typeface.json">Optimer Bold (Türkçe)</option>
-            <option value="https://threejs.org/examples/fonts/droid/droid_sans_bold.typeface.json">Droid Sans Bold (Türkçe)</option>
-            <option value="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json">Helvetiker Bold</option>
+            <option value="Open_Sans_Regular.json">Open Sans - Normal</option>
+            <option value="Open_Sans_Italic.json">Open Sans - İtalik</option>
+            <option value="Roboto_Regular.json">Roboto - Normal</option>
+            <option value="Roboto_Italic.json">Roboto - İtalik</option>
         </select>
     </div>
 
@@ -80,12 +82,8 @@
 <script>
     let scene, camera, renderer, controls, keychainGroup, loadedFont = null;
 
-    // ============================================
-    // ÖNEMLİ: Yazı kabartması plakanın içine gömülür
-    // Toplam kalınlık = Kullanıcının girdiği kalınlık
-    // Yazı, plakanın üst yüzeyinden sadece 0.4mm dışarı taşar
-    // ============================================
-    const KABARTMA_PAYI = 0.4;  // Yazının plakadan dışarı çıkma miktarı (mm)
+    // Kabartma payı - yazı plakanın içinden sadece bu kadar dışarı çıkar
+    const KABARTMA_PAYI = 0.4;
 
     function init3D() {
         const container = document.getElementById('canvas-container');
@@ -110,14 +108,15 @@
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
 
-        loadFont();
+        // İlk fontu yükle
+        const defaultFont = document.getElementById('fontSelect').value;
+        loadFont(defaultFont);
         animate();
     }
 
-    function loadFont() {
+    function loadFont(fontFileName) {
         const statusEl = document.getElementById('status');
         const downloadBtn = document.getElementById('downloadBtn');
-        const fontUrl = document.getElementById('fontSelect').value;
         
         statusEl.innerText = "Font yükleniyor...";
         statusEl.className = "status loading";
@@ -125,24 +124,26 @@
 
         const loader = new THREE.FontLoader();
         loader.load(
-            fontUrl,
+            fontFileName,
             function (font) {
                 loadedFont = font;
-                statusEl.innerText = "✅ Font yüklendi! Türkçe karakterler aktif.";
+                statusEl.innerText = `✅ ${fontFileName.replace('.json', '')} yüklendi - Türkçe karakterler aktif`;
                 statusEl.className = "status";
                 downloadBtn.disabled = false;
                 updateKeychain();
             },
             undefined,
             function (error) {
-                statusEl.innerText = "❌ Font yüklenemedi!";
+                console.error("Font yüklenemedi:", fontFileName, error);
+                statusEl.innerText = `❌ ${fontFileName} yüklenemedi!`;
                 statusEl.className = "status error";
             }
         );
     }
 
     function changeFont() {
-        loadFont();
+        const selectedFont = document.getElementById('fontSelect').value;
+        loadFont(selectedFont);
     }
 
     function createRoundedRectShape(width, height, radius) {
@@ -183,8 +184,7 @@
         const holeY = 0;
 
         // ============================================
-        // PLAKA: Toplam kalınlığın tamamı (yazı hariç)
-        // Yazı plakanın içinden çıkacak, üstüne eklenmeyecek
+        // PLAKA
         // ============================================
         const rectShape = createRoundedRectShape(width, height, radius);
         const holePath = new THREE.Path();
@@ -206,19 +206,16 @@
         keychainGroup.add(plateMesh);
 
         // ============================================
-        // YAZI: Plakanın içine gömülü, sadece KABARTMA_PAYI kadar dışarı çıkar
-        // Ğ, Ç, Ş, İ gibi Türkçe karakterlerin üst/alt uzantıları için pay bırakılır
+        // YAZI - Plakanın içine gömülü, Türkçe karakter payı ile
         // ============================================
         if (textVal.trim() !== "") {
-            // Yazı alanı: yükseklikten %35 pay bırak (üst ve alt uzantılar için)
-            const availableHeight = height * 0.5;  // %50 yerine %50 kullan ama yazı ortada dursun
-            let fontSize = availableHeight;
+            // Yazı boyutu plaka yüksekliğinin %45'i (Türkçe karakterlerin uzantıları için pay)
+            let fontSize = height * 0.45;
 
             const leftBoundary = -width / 2 + 2;
             const holeLeftBoundary = holeX - (holeDia / 2) - 3;
             const maxTextWidth = holeLeftBoundary - leftBoundary;
 
-            // Yazı yüksekliği (kabartma)
             const textDepth = KABARTMA_PAYI;
             
             let textGeo;
@@ -267,7 +264,7 @@
             }
 
             // Yükseklik sığmazsa küçült (Ğ, Ş gibi uzun karakterler için)
-            const maxTextHeight = height * 0.7; // Plaka yüksekliğinin %70'i
+            const maxTextHeight = height * 0.65;
             if (textHeightActual > maxTextHeight && textHeightActual > 0) {
                 const scale = maxTextHeight / textHeightActual;
                 fontSize *= scale;
@@ -284,18 +281,9 @@
 
             const textMesh = new THREE.Mesh(textGeo, textMaterial);
             
-            // ÖNEMLİ: Yazıyı plakanın İÇİNE gömüyoruz
-            // Plaka: z = 0 → thickness
-            // Yazı: z = thickness - KABARTMA_PAYI (içeride başlar) → thickness (tam üstte biter)
-            // Yani yazı plakanın içinden çıkar, toplam kalınlık hala "thickness"
+            // Yazıyı plakanın içine göm
             const centerX = leftBoundary + (maxTextWidth - textWidth) / 2;
-            
-            // Yazıyı ortala - Türkçe karakterlerin üst uzantıları için biraz aşağı kaydır
             const posY = -fontSize / 2.5;
-            
-            // Z konumu: plakanın alt kısmından başlayıp üstüne doğru
-            // Plaka merkezi 0'da, üstü thickness/2'de
-            // Yazıyı öyle yerleştir ki üstü plakanın üstüyle aynı hizada olsun
             const textZPos = thickness / 2 - textDepth;
             
             textMesh.position.set(centerX, posY, textZPos);
