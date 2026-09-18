@@ -16,7 +16,6 @@
         .form-group { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         label { font-weight: 600; color: #555; font-size: 14px; }
         input[type="text"], input[type="number"], select { width: 200px; padding: 6px 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: right; }
-        select { text-align-last: right; cursor: pointer; }
         .full-width { width: 100%; display: block; margin-bottom: 8px; }
         #canvas-container { width: 100%; height: 240px; background: #e9ecef; border-radius: 8px; margin: 15px 0; position: relative; overflow: hidden; cursor: grab; }
         #canvas-container:active { cursor: grabbing; }
@@ -36,16 +35,15 @@
     
     <div class="form-group full-width" style="flex-direction: column; align-items: flex-start;">
         <label for="textInput">Anahtarlık Metni:</label>
-        <input type="text" id="textInput" value="DD_VECTOR" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;" placeholder="Türkçe karakter: ÇĞİÖŞÜ">
+        <input type="text" id="textInput" value="DOĞAN" oninput="updateKeychain()" style="width: 100%; text-align: left; margin-top: 5px; padding: 8px;" placeholder="Türkçe karakter: ÇĞİÖŞÜ">
     </div>
 
     <div class="form-group">
         <label for="fontSelect">Yazı Tipi:</label>
         <select id="fontSelect" onchange="changeFont()">
-            <option value="Open_Sans_Regular.json">Open Sans - Normal</option>
-            <option value="Open_Sans_Italic.json">Open Sans - İtalik</option>
-            <option value="Roboto_Regular.json">Roboto - Normal</option>
-            <option value="Roboto_Italic.json">Roboto - İtalik</option>
+            <option value="https://threejs.org/examples/fonts/optimer_bold.typeface.json">Optimer Bold (Türkçe)</option>
+            <option value="https://threejs.org/examples/fonts/droid/droid_sans_bold.typeface.json">Droid Sans Bold (Türkçe)</option>
+            <option value="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json">Helvetiker Bold</option>
         </select>
     </div>
 
@@ -62,7 +60,7 @@
         <input type="number" id="heightInput" value="30" min="20" max="80" oninput="updateKeychain()">
     </div>
     <div class="form-group">
-        <label for="thicknessInput">Kalınlık (Z - mm):</label>
+        <label for="thicknessInput">Toplam Kalınlık (Z - mm):</label>
         <input type="number" id="thicknessInput" value="3.5" min="1" max="10" step="0.5" oninput="updateKeychain()">
     </div>
     <div class="form-group">
@@ -82,12 +80,12 @@
 <script>
     let scene, camera, renderer, controls, keychainGroup, loadedFont = null;
 
-    const FONT_FILES = {
-        'Open_Sans_Regular.json': 'Open Sans - Normal',
-        'Open_Sans_Italic.json': 'Open Sans - İtalik',
-        'Roboto_Regular.json': 'Roboto - Normal',
-        'Roboto_Italic.json': 'Roboto - İtalik'
-    };
+    // ============================================
+    // ÖNEMLİ: Yazı kabartması plakanın içine gömülür
+    // Toplam kalınlık = Kullanıcının girdiği kalınlık
+    // Yazı, plakanın üst yüzeyinden sadece 0.4mm dışarı taşar
+    // ============================================
+    const KABARTMA_PAYI = 0.4;  // Yazının plakadan dışarı çıkma miktarı (mm)
 
     function init3D() {
         const container = document.getElementById('canvas-container');
@@ -112,15 +110,14 @@
         dirLight.position.set(10, -20, 40);
         scene.add(dirLight);
 
-        const defaultFont = document.getElementById('fontSelect').value;
-        loadFont(defaultFont);
-
+        loadFont();
         animate();
     }
 
-    function loadFont(fontFileName) {
+    function loadFont() {
         const statusEl = document.getElementById('status');
         const downloadBtn = document.getElementById('downloadBtn');
+        const fontUrl = document.getElementById('fontSelect').value;
         
         statusEl.innerText = "Font yükleniyor...";
         statusEl.className = "status loading";
@@ -128,28 +125,24 @@
 
         const loader = new THREE.FontLoader();
         loader.load(
-            fontFileName,
+            fontUrl,
             function (font) {
                 loadedFont = font;
-                const fontName = FONT_FILES[fontFileName] || fontFileName;
-                statusEl.innerText = `✅ ${fontName} yüklendi - Türkçe karakterler aktif`;
+                statusEl.innerText = "✅ Font yüklendi! Türkçe karakterler aktif.";
                 statusEl.className = "status";
                 downloadBtn.disabled = false;
                 updateKeychain();
             },
             undefined,
             function (error) {
-                console.error("Font yüklenemedi:", fontFileName, error);
-                statusEl.innerText = `❌ ${fontFileName} yüklenemedi!`;
+                statusEl.innerText = "❌ Font yüklenemedi!";
                 statusEl.className = "status error";
-                downloadBtn.disabled = true;
             }
         );
     }
 
     function changeFont() {
-        const selectedFont = document.getElementById('fontSelect').value;
-        loadFont(selectedFont);
+        loadFont();
     }
 
     function createRoundedRectShape(width, height, radius) {
@@ -184,37 +177,56 @@
         const thickness = parseFloat(document.getElementById('thicknessInput').value) || 3.5;
         const holeDia = parseFloat(document.getElementById('holeInput').value) || 4.5;
         const radius = parseFloat(document.getElementById('radiusInput').value) || 4;
-        const textVal = document.getElementById('textInput').value || "MUSTAFA";
+        const textVal = document.getElementById('textInput').value || "DOĞAN";
 
         const holeX = (width / 2) - 2 - (holeDia / 2);
         const holeY = 0;
 
+        // ============================================
+        // PLAKA: Toplam kalınlığın tamamı (yazı hariç)
+        // Yazı plakanın içinden çıkacak, üstüne eklenmeyecek
+        // ============================================
         const rectShape = createRoundedRectShape(width, height, radius);
         const holePath = new THREE.Path();
         holePath.absarc(holeX, holeY, holeDia / 2, 0, Math.PI * 2, true);
         rectShape.holes.push(holePath);
 
-        const extrudeSettings = { depth: thickness, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.15, bevelThickness: 0.15 };
+        const extrudeSettings = { 
+            depth: thickness, 
+            bevelEnabled: true, 
+            bevelSegments: 2, 
+            steps: 1, 
+            bevelSize: 0.15, 
+            bevelThickness: 0.15 
+        };
         const plateGeo = new THREE.ExtrudeGeometry(rectShape, extrudeSettings);
         plateGeo.center();
         const plateMesh = new THREE.Mesh(plateGeo, material);
         plateMesh.position.set(0, 0, thickness / 2);
         keychainGroup.add(plateMesh);
 
+        // ============================================
+        // YAZI: Plakanın içine gömülü, sadece KABARTMA_PAYI kadar dışarı çıkar
+        // Ğ, Ç, Ş, İ gibi Türkçe karakterlerin üst/alt uzantıları için pay bırakılır
+        // ============================================
         if (textVal.trim() !== "") {
-            const availableHeight = height - 4;
-            let fontSize = availableHeight * 0.8;
+            // Yazı alanı: yükseklikten %35 pay bırak (üst ve alt uzantılar için)
+            const availableHeight = height * 0.5;  // %50 yerine %50 kullan ama yazı ortada dursun
+            let fontSize = availableHeight;
 
             const leftBoundary = -width / 2 + 2;
             const holeLeftBoundary = holeX - (holeDia / 2) - 3;
             const maxTextWidth = holeLeftBoundary - leftBoundary;
 
+            // Yazı yüksekliği (kabartma)
+            const textDepth = KABARTMA_PAYI;
+            
             let textGeo;
             try {
                 textGeo = new THREE.TextGeometry(textVal, {
                     font: loadedFont,
                     size: fontSize,
-                    height: 1.2,
+                    height: textDepth,
                     curveSegments: 12
                 });
             } catch(e) {
@@ -229,14 +241,16 @@
                 textGeo = new THREE.TextGeometry(safeText, {
                     font: loadedFont,
                     size: fontSize,
-                    height: 1.2,
+                    height: textDepth,
                     curveSegments: 12
                 });
             }
             
             textGeo.computeBoundingBox();
             let textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
+            let textHeightActual = textGeo.boundingBox.max.y - textGeo.boundingBox.min.y;
 
+            // Genişlik sığmazsa küçült
             if (textWidth > maxTextWidth && textWidth > 0) {
                 const scale = maxTextWidth / textWidth;
                 fontSize *= scale;
@@ -244,7 +258,24 @@
                 textGeo = new THREE.TextGeometry(textVal, {
                     font: loadedFont,
                     size: fontSize,
-                    height: 1.2,
+                    height: textDepth,
+                    curveSegments: 12
+                });
+                textGeo.computeBoundingBox();
+                textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
+                textHeightActual = textGeo.boundingBox.max.y - textGeo.boundingBox.min.y;
+            }
+
+            // Yükseklik sığmazsa küçült (Ğ, Ş gibi uzun karakterler için)
+            const maxTextHeight = height * 0.7; // Plaka yüksekliğinin %70'i
+            if (textHeightActual > maxTextHeight && textHeightActual > 0) {
+                const scale = maxTextHeight / textHeightActual;
+                fontSize *= scale;
+                textGeo.dispose();
+                textGeo = new THREE.TextGeometry(textVal, {
+                    font: loadedFont,
+                    size: fontSize,
+                    height: textDepth,
                     curveSegments: 12
                 });
                 textGeo.computeBoundingBox();
@@ -252,9 +283,22 @@
             }
 
             const textMesh = new THREE.Mesh(textGeo, textMaterial);
+            
+            // ÖNEMLİ: Yazıyı plakanın İÇİNE gömüyoruz
+            // Plaka: z = 0 → thickness
+            // Yazı: z = thickness - KABARTMA_PAYI (içeride başlar) → thickness (tam üstte biter)
+            // Yani yazı plakanın içinden çıkar, toplam kalınlık hala "thickness"
             const centerX = leftBoundary + (maxTextWidth - textWidth) / 2;
+            
+            // Yazıyı ortala - Türkçe karakterlerin üst uzantıları için biraz aşağı kaydır
             const posY = -fontSize / 2.5;
-            textMesh.position.set(centerX, posY, thickness);
+            
+            // Z konumu: plakanın alt kısmından başlayıp üstüne doğru
+            // Plaka merkezi 0'da, üstü thickness/2'de
+            // Yazıyı öyle yerleştir ki üstü plakanın üstüyle aynı hizada olsun
+            const textZPos = thickness / 2 - textDepth;
+            
+            textMesh.position.set(centerX, posY, textZPos);
             keychainGroup.add(textMesh);
         }
 
@@ -281,8 +325,7 @@
         link.href = URL.createObjectURL(blob);
         
         const textVal = document.getElementById('textInput').value || "anahtarlik";
-        const fontVal = document.getElementById('fontSelect').value.replace('.json', '');
-        link.download = `${textVal.replace(/[^a-zA-Z0-9]/g, '_')}_${fontVal}_anahtarlik.stl`;
+        link.download = `${textVal.replace(/[^a-zA-Z0-9]/g, '_')}_anahtarlik.stl`;
         link.click();
     }
 
